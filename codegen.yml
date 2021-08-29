@@ -1,0 +1,9 @@
+overwrite: true
+generates:
+  "src/generated/types.ts":
+    schema: "src/components/**/*.graphql"
+    config:
+      contextType: "../components/context#GraphQLContext"
+    plugins:
+      - "typescript"
+      - "typescript-resolvers"
