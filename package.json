@@ -1,7 +1,7 @@
 {
-  "name": "interview-express",
+  "name": "node-express-apollo-graphql",
   "version": "0.1.0",
-  "description": "Provides a standardized framework for interview technical review",
+  "description": "Provides a standardized framework for starting a graphql api",
   "main": "dist/index.js",
   "scripts": {
     "dev": "ts-node ./src/index.ts",
