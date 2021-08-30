@@ -1,0 +1,18 @@
+interface ICreated {
+  "ISO date time string for the time this resource was created"
+  createdAt: String
+  "Unique identifier for users that created this resource"
+  createdBy: ID
+}
+
+interface IDisplayName {
+  "A preformatted display name safe to display in HTML context"
+  displayName: String
+}
+
+interface IUpdated {
+  "ISO date time string for the time this resource was created"
+  updatedAt: String
+  "Unique identifier for users that created this resource"
+  updatedBy: ID
+}

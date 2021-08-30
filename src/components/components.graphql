@@ -1,0 +1,5 @@
+scalar JSON
+scalar Upload
+
+type Query
+#type Mutation # Enable if you have any

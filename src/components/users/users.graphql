@@ -1,0 +1,22 @@
+extend type Query {
+  self: User
+}
+
+type User implements ICreated & IUpdated & IDisplayName {
+  "Unique identifier for the resource across all collections"
+  id: ID
+  "ISO date time string for the time this resource was created"
+  createdAt: String
+  "Unique identifier for users that created this resource"
+  createdBy: ID
+  "ISO date time string for the time this resource was created"
+  updatedAt: String
+  "Unique identifier for users that created this resource"
+  updatedBy: ID
+  "A preformatted name safe to display in any HTML context"
+  displayName: String
+  "Email addresses"
+  email: String
+  "Determines if a users is a service account supporting applications"
+  isServiceAccount: Boolean
+}
