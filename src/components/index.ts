@@ -16,7 +16,7 @@ export const getSchemaWithResolvers = async (): Promise<GraphQLSchema> => {
   // Stub the resolvers, including any special scalar types required by plugins
   const resolvers: IResolvers = {
     Query: {},
-    // Mutation: {}, // Enable if you have any
+    Mutation: {},
     JSON: GraphQLJSON,
     Upload: GraphQLUpload!,
   };

@@ -4,6 +4,7 @@ export type Maybe<T> = T | null;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
 export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: Maybe<T[SubKey]> };
 export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Maybe<T[SubKey]> };
+export type RequireFields<T, K extends keyof T> = { [X in Exclude<keyof T, K>]?: T[X] } & { [P in K]-?: NonNullable<T[P]> };
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
   ID: string;
@@ -19,7 +20,16 @@ export type Scalars = {
 
 export type Query = {
   __typename?: 'Query';
+  /** Returns the current user as defined by the authentication headers */
   self?: Maybe<User>;
+  /** Provides name spaced users functionality */
+  users: UsersQuery;
+};
+
+export type Mutation = {
+  __typename?: 'Mutation';
+  /** Provides name spaced users functionality */
+  users: UsersMutations;
 };
 
 export type ICreated = {
@@ -41,6 +51,32 @@ export type IUpdated = {
   updatedBy?: Maybe<Scalars['ID']>;
 };
 
+/** Provides name spaced users functionality */
+export type UsersQuery = {
+  __typename?: 'UsersQuery';
+  /** Returns the user record matching the provided id */
+  getById?: Maybe<User>;
+};
+
+
+/** Provides name spaced users functionality */
+export type UsersQueryGetByIdArgs = {
+  id: Scalars['ID'];
+};
+
+/** Provides name spaced users functionality */
+export type UsersMutations = {
+  __typename?: 'UsersMutations';
+  /** Saves the user and returns the updated copy */
+  saveUser?: Maybe<User>;
+};
+
+
+/** Provides name spaced users functionality */
+export type UsersMutationsSaveUserArgs = {
+  user: UserInput;
+};
+
 export type User = ICreated & IUpdated & IDisplayName & {
   __typename?: 'User';
   /** Unique identifier for the resource across all collections */
@@ -59,6 +95,15 @@ export type User = ICreated & IUpdated & IDisplayName & {
   email?: Maybe<Scalars['String']>;
   /** Determines if a users is a service account supporting applications */
   isServiceAccount?: Maybe<Scalars['Boolean']>;
+};
+
+export type UserInput = {
+  /** Unique identifier for the resource across all collections */
+  id: Scalars['ID'];
+  /** A preformatted name safe to display in any HTML context */
+  displayName?: Maybe<Scalars['String']>;
+  /** Email addresses */
+  email?: Maybe<Scalars['String']>;
 };
 
 
@@ -147,13 +192,17 @@ export type ResolversTypes = {
   JSON: ResolverTypeWrapper<Scalars['JSON']>;
   Upload: ResolverTypeWrapper<Scalars['Upload']>;
   Query: ResolverTypeWrapper<{}>;
+  Mutation: ResolverTypeWrapper<{}>;
   ICreated: ResolversTypes['User'];
   String: ResolverTypeWrapper<Scalars['String']>;
   ID: ResolverTypeWrapper<Scalars['ID']>;
   IDisplayName: ResolversTypes['User'];
   IUpdated: ResolversTypes['User'];
+  UsersQuery: ResolverTypeWrapper<UsersQuery>;
+  UsersMutations: ResolverTypeWrapper<UsersMutations>;
   User: ResolverTypeWrapper<User>;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']>;
+  UserInput: UserInput;
 };
 
 /** Mapping between all available schema types and the resolvers parents */
@@ -161,13 +210,17 @@ export type ResolversParentTypes = {
   JSON: Scalars['JSON'];
   Upload: Scalars['Upload'];
   Query: {};
+  Mutation: {};
   ICreated: ResolversParentTypes['User'];
   String: Scalars['String'];
   ID: Scalars['ID'];
   IDisplayName: ResolversParentTypes['User'];
   IUpdated: ResolversParentTypes['User'];
+  UsersQuery: UsersQuery;
+  UsersMutations: UsersMutations;
   User: User;
   Boolean: Scalars['Boolean'];
+  UserInput: UserInput;
 };
 
 export interface JsonScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['JSON'], any> {
@@ -180,6 +233,11 @@ export interface UploadScalarConfig extends GraphQLScalarTypeConfig<ResolversTyp
 
 export type QueryResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
   self?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
+  users?: Resolver<ResolversTypes['UsersQuery'], ParentType, ContextType>;
+};
+
+export type MutationResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
+  users?: Resolver<ResolversTypes['UsersMutations'], ParentType, ContextType>;
 };
 
 export type ICreatedResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['ICreated'] = ResolversParentTypes['ICreated']> = {
@@ -199,6 +257,16 @@ export type IUpdatedResolvers<ContextType = GraphQLContext, ParentType extends R
   updatedBy?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType>;
 };
 
+export type UsersQueryResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['UsersQuery'] = ResolversParentTypes['UsersQuery']> = {
+  getById?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<UsersQueryGetByIdArgs, 'id'>>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type UsersMutationsResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['UsersMutations'] = ResolversParentTypes['UsersMutations']> = {
+  saveUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<UsersMutationsSaveUserArgs, 'user'>>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type UserResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['User'] = ResolversParentTypes['User']> = {
   id?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType>;
   createdAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -215,9 +283,12 @@ export type Resolvers<ContextType = GraphQLContext> = {
   JSON?: GraphQLScalarType;
   Upload?: GraphQLScalarType;
   Query?: QueryResolvers<ContextType>;
+  Mutation?: MutationResolvers<ContextType>;
   ICreated?: ICreatedResolvers<ContextType>;
   IDisplayName?: IDisplayNameResolvers<ContextType>;
   IUpdated?: IUpdatedResolvers<ContextType>;
+  UsersQuery?: UsersQueryResolvers<ContextType>;
+  UsersMutations?: UsersMutationsResolvers<ContextType>;
   User?: UserResolvers<ContextType>;
 };
 

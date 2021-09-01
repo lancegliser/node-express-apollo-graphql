@@ -1,5 +1,25 @@
 extend type Query {
+  "Returns the current user as defined by the authentication headers"
   self: User
+  "Provides name spaced users functionality"
+  users: UsersQuery!
+}
+
+"Provides name spaced users functionality"
+type UsersQuery {
+  "Returns the user record matching the provided id"
+  getById(id: ID!): User
+}
+
+extend type Mutation {
+  "Provides name spaced users functionality"
+  users: UsersMutations!
+}
+
+"Provides name spaced users functionality"
+type UsersMutations {
+  "Saves the user and returns the updated copy"
+  saveUser(user: UserInput!): User
 }
 
 type User implements ICreated & IUpdated & IDisplayName {
@@ -19,4 +39,13 @@ type User implements ICreated & IUpdated & IDisplayName {
   email: String
   "Determines if a users is a service account supporting applications"
   isServiceAccount: Boolean
+}
+
+input UserInput {
+  "Unique identifier for the resource across all collections"
+  id: ID!
+  "A preformatted name safe to display in any HTML context"
+  displayName: String
+  "Email addresses"
+  email: String
 }
