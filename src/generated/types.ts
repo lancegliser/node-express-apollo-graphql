@@ -16,22 +16,6 @@ export type Scalars = {
   Upload: any;
 };
 
-
-
-export type Query = {
-  __typename?: 'Query';
-  /** Returns the current user as defined by the authentication headers */
-  self?: Maybe<User>;
-  /** Provides name spaced users functionality */
-  users: UsersQuery;
-};
-
-export type Mutation = {
-  __typename?: 'Mutation';
-  /** Provides name spaced users functionality */
-  users: UsersMutations;
-};
-
 export type ICreated = {
   /** ISO date time string for the time this resource was created */
   createdAt?: Maybe<Scalars['String']>;
@@ -51,31 +35,21 @@ export type IUpdated = {
   updatedBy?: Maybe<Scalars['ID']>;
 };
 
-/** Provides name spaced users functionality */
-export type UsersQuery = {
-  __typename?: 'UsersQuery';
-  /** Returns the user record matching the provided id */
-  getById?: Maybe<User>;
+
+export type Mutation = {
+  __typename?: 'Mutation';
+  /** Provides name spaced users functionality */
+  users: UsersMutations;
 };
 
-
-/** Provides name spaced users functionality */
-export type UsersQueryGetByIdArgs = {
-  id: Scalars['ID'];
+export type Query = {
+  __typename?: 'Query';
+  /** Returns the current user as defined by the authentication headers */
+  self?: Maybe<User>;
+  /** Provides name spaced users functionality */
+  users: UsersQuery;
 };
 
-/** Provides name spaced users functionality */
-export type UsersMutations = {
-  __typename?: 'UsersMutations';
-  /** Saves the user and returns the updated copy */
-  saveUser?: Maybe<User>;
-};
-
-
-/** Provides name spaced users functionality */
-export type UsersMutationsSaveUserArgs = {
-  user: UserInput;
-};
 
 export type User = ICreated & IUpdated & IDisplayName & {
   __typename?: 'User';
@@ -106,6 +80,32 @@ export type UserInput = {
   email?: Maybe<Scalars['String']>;
 };
 
+/** Provides name spaced users functionality */
+export type UsersMutations = {
+  __typename?: 'UsersMutations';
+  /** Saves the user and returns the updated copy */
+  saveUser?: Maybe<User>;
+};
+
+
+/** Provides name spaced users functionality */
+export type UsersMutationsSaveUserArgs = {
+  user: UserInput;
+};
+
+/** Provides name spaced users functionality */
+export type UsersQuery = {
+  __typename?: 'UsersQuery';
+  /** Returns the user record matching the provided id */
+  getById?: Maybe<User>;
+};
+
+
+/** Provides name spaced users functionality */
+export type UsersQueryGetByIdArgs = {
+  id: Scalars['ID'];
+};
+
 
 
 export type ResolverTypeWrapper<T> = Promise<T> | T;
@@ -114,21 +114,7 @@ export type ResolverTypeWrapper<T> = Promise<T> | T;
 export type ResolverWithResolve<TResult, TParent, TContext, TArgs> = {
   resolve: ResolverFn<TResult, TParent, TContext, TArgs>;
 };
-
-export type LegacyStitchingResolver<TResult, TParent, TContext, TArgs> = {
-  fragment: string;
-  resolve: ResolverFn<TResult, TParent, TContext, TArgs>;
-};
-
-export type NewStitchingResolver<TResult, TParent, TContext, TArgs> = {
-  selectionSet: string;
-  resolve: ResolverFn<TResult, TParent, TContext, TArgs>;
-};
-export type StitchingResolver<TResult, TParent, TContext, TArgs> = LegacyStitchingResolver<TResult, TParent, TContext, TArgs> | NewStitchingResolver<TResult, TParent, TContext, TArgs>;
-export type Resolver<TResult, TParent = {}, TContext = {}, TArgs = {}> =
-  | ResolverFn<TResult, TParent, TContext, TArgs>
-  | ResolverWithResolve<TResult, TParent, TContext, TArgs>
-  | StitchingResolver<TResult, TParent, TContext, TArgs>;
+export type Resolver<TResult, TParent = {}, TContext = {}, TArgs = {}> = ResolverFn<TResult, TParent, TContext, TArgs> | ResolverWithResolve<TResult, TParent, TContext, TArgs>;
 
 export type ResolverFn<TResult, TParent, TContext, TArgs> = (
   parent: TParent,
@@ -189,55 +175,38 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = {
-  JSON: ResolverTypeWrapper<Scalars['JSON']>;
-  Upload: ResolverTypeWrapper<Scalars['Upload']>;
-  Query: ResolverTypeWrapper<{}>;
-  Mutation: ResolverTypeWrapper<{}>;
   ICreated: ResolversTypes['User'];
   String: ResolverTypeWrapper<Scalars['String']>;
   ID: ResolverTypeWrapper<Scalars['ID']>;
   IDisplayName: ResolversTypes['User'];
   IUpdated: ResolversTypes['User'];
-  UsersQuery: ResolverTypeWrapper<UsersQuery>;
-  UsersMutations: ResolverTypeWrapper<UsersMutations>;
+  JSON: ResolverTypeWrapper<Scalars['JSON']>;
+  Mutation: ResolverTypeWrapper<{}>;
+  Query: ResolverTypeWrapper<{}>;
+  Upload: ResolverTypeWrapper<Scalars['Upload']>;
   User: ResolverTypeWrapper<User>;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']>;
   UserInput: UserInput;
+  UsersMutations: ResolverTypeWrapper<UsersMutations>;
+  UsersQuery: ResolverTypeWrapper<UsersQuery>;
 };
 
 /** Mapping between all available schema types and the resolvers parents */
 export type ResolversParentTypes = {
-  JSON: Scalars['JSON'];
-  Upload: Scalars['Upload'];
-  Query: {};
-  Mutation: {};
   ICreated: ResolversParentTypes['User'];
   String: Scalars['String'];
   ID: Scalars['ID'];
   IDisplayName: ResolversParentTypes['User'];
   IUpdated: ResolversParentTypes['User'];
-  UsersQuery: UsersQuery;
-  UsersMutations: UsersMutations;
+  JSON: Scalars['JSON'];
+  Mutation: {};
+  Query: {};
+  Upload: Scalars['Upload'];
   User: User;
   Boolean: Scalars['Boolean'];
   UserInput: UserInput;
-};
-
-export interface JsonScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['JSON'], any> {
-  name: 'JSON';
-}
-
-export interface UploadScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['Upload'], any> {
-  name: 'Upload';
-}
-
-export type QueryResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
-  self?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
-  users?: Resolver<ResolversTypes['UsersQuery'], ParentType, ContextType>;
-};
-
-export type MutationResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
-  users?: Resolver<ResolversTypes['UsersMutations'], ParentType, ContextType>;
+  UsersMutations: UsersMutations;
+  UsersQuery: UsersQuery;
 };
 
 export type ICreatedResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['ICreated'] = ResolversParentTypes['ICreated']> = {
@@ -257,15 +226,22 @@ export type IUpdatedResolvers<ContextType = GraphQLContext, ParentType extends R
   updatedBy?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType>;
 };
 
-export type UsersQueryResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['UsersQuery'] = ResolversParentTypes['UsersQuery']> = {
-  getById?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<UsersQueryGetByIdArgs, 'id'>>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+export interface JsonScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['JSON'], any> {
+  name: 'JSON';
+}
+
+export type MutationResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
+  users?: Resolver<ResolversTypes['UsersMutations'], ParentType, ContextType>;
 };
 
-export type UsersMutationsResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['UsersMutations'] = ResolversParentTypes['UsersMutations']> = {
-  saveUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<UsersMutationsSaveUserArgs, 'user'>>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+export type QueryResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
+  self?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
+  users?: Resolver<ResolversTypes['UsersQuery'], ParentType, ContextType>;
 };
+
+export interface UploadScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['Upload'], any> {
+  name: 'Upload';
+}
 
 export type UserResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['User'] = ResolversParentTypes['User']> = {
   id?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType>;
@@ -279,22 +255,26 @@ export type UserResolvers<ContextType = GraphQLContext, ParentType extends Resol
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type UsersMutationsResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['UsersMutations'] = ResolversParentTypes['UsersMutations']> = {
+  saveUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<UsersMutationsSaveUserArgs, 'user'>>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type UsersQueryResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['UsersQuery'] = ResolversParentTypes['UsersQuery']> = {
+  getById?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<UsersQueryGetByIdArgs, 'id'>>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type Resolvers<ContextType = GraphQLContext> = {
-  JSON?: GraphQLScalarType;
-  Upload?: GraphQLScalarType;
-  Query?: QueryResolvers<ContextType>;
-  Mutation?: MutationResolvers<ContextType>;
   ICreated?: ICreatedResolvers<ContextType>;
   IDisplayName?: IDisplayNameResolvers<ContextType>;
   IUpdated?: IUpdatedResolvers<ContextType>;
-  UsersQuery?: UsersQueryResolvers<ContextType>;
-  UsersMutations?: UsersMutationsResolvers<ContextType>;
+  JSON?: GraphQLScalarType;
+  Mutation?: MutationResolvers<ContextType>;
+  Query?: QueryResolvers<ContextType>;
+  Upload?: GraphQLScalarType;
   User?: UserResolvers<ContextType>;
+  UsersMutations?: UsersMutationsResolvers<ContextType>;
+  UsersQuery?: UsersQueryResolvers<ContextType>;
 };
 
-
-/**
- * @deprecated
- * Use "Resolvers" root object instead. If you wish to get "IResolvers", add "typesPrefix: I" to your config.
- */
-export type IResolvers<ContextType = GraphQLContext> = Resolvers<ContextType>;
