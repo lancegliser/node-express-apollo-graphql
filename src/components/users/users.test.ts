@@ -14,15 +14,13 @@ import {
 } from "../../generated/types";
 
 describe("users", () => {
-  it("should return the current user (self) from request context", async (done) => {
+  it("should return the current user (self) from request context", async () => {
     await withSelfContext(async ({ self }) => {
       expect(self.displayName).toBeTruthy();
-
-      done();
     });
   });
 
-  it("should return a user given an id", async (done) => {
+  it("should return a user given an id", async () => {
     await withSelfContext(async ({ application, authorization, self }) => {
       if (!self.id) {
         throw new Error("self.id is undefined");
@@ -53,12 +51,10 @@ describe("users", () => {
 
       const user: User = response.body.data.users.getById;
       expect(user.id).toBe(self.id);
-
-      done();
     });
   });
 
-  it("should save the user and return the updated user", async (done) => {
+  it("should save the user and return the updated user", async () => {
     await withSelfContext(async ({ application, authorization, self }) => {
       if (!self.id) {
         throw new Error("self.id is undefined");
@@ -98,8 +94,6 @@ describe("users", () => {
       const user: User = response.body.data.users.saveUser;
       expect(user.id).toBe(self.id);
       expect(user.displayName).toBe(newName);
-
-      done();
     });
   });
 });
