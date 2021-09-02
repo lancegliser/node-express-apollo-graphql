@@ -1,5 +1,4 @@
 import { ICreated, IUpdated, Maybe, User } from "../generated/types";
-import UserSchema from "./users/users.schema";
 
 // Utility methods
 
@@ -12,23 +11,22 @@ export const setAuditingProperties = (
 };
 
 export const setCreatedProperties = (object: ICreated, user: User): void => {
-  if (!user._key) {
+  if (!user.id) {
     throw new Error("users._key is undefined");
   }
 
   object.createdAt = object.createdAt || new Date().toISOString();
-  object.createdBy =
-    object.createdBy || `${UserSchema.users.name}/${user._key}`;
+  object.createdBy = object.createdBy || `users/${user.id}`;
 };
 
 // Updated
 export const setUpdatedProperties = (object: IUpdated, user: User): void => {
-  if (!user._key) {
+  if (!user.id) {
     throw new Error("users._key is undefined");
   }
 
   object.updatedAt = new Date().toISOString();
-  object.updatedBy = `${UserSchema.users.name}/${user._key}`;
+  object.updatedBy = `users/${user.id}`;
 };
 
 // Unique interfaces
