@@ -37,7 +37,7 @@
     "eslint": "^7.32.0",
     "jest": "^27.1.0",
     "mime-types": "^2.1.32",
-    "nodemon": "^2.0.4",
+    "nodemon": "^2.0.12",
     "prettier": "^2.3.2",
     "prettier-eslint": "^13.0.0",
     "rimraf": "^2.7.1",
