@@ -12,7 +12,9 @@
     "clean": "rimraf dist/*",
     "build": "npm run clean && tsc",
     "start": "npm ls --depth=0 && node ./dist/index.js",
-    "graphql-codegen": "graphql-codegen --config codegen.yml"
+    "graphql-codegen": "graphql-codegen --config codegen.yml",
+    "pre-commit": "lint-staged",
+    "prepare": "husky install"
   },
   "contributors": [
     "Lance Gliser <lance@fragmentedthought.com> (https://fragmentedthought.com)"
@@ -56,5 +58,10 @@
     "graphql-upload": "^12.0.0",
     "tslib": "^2.3.1",
     "uuid": "^8.3.2"
+  },
+  "lint-staged": {
+    "src/**/*.{js,ts,json,md,graphql}": [
+      "prettier --write"
+    ]
   }
 }
