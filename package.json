@@ -1,6 +1,6 @@
 {
   "name": "node-express-apollo-graphql",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Provides a standardized framework for starting a graphql api",
   "main": "dist/index.js",
   "scripts": {
@@ -12,7 +12,9 @@
     "clean": "rimraf dist/*",
     "build": "npm run clean && tsc",
     "start": "npm ls --depth=0 && node ./dist/index.js",
-    "graphql-codegen": "graphql-codegen --config codegen.yml"
+    "graphql-codegen": "graphql-codegen --config codegen.yml",
+    "pre-commit": "lint-staged",
+    "prepare": "husky install"
   },
   "contributors": [
     "Lance Gliser <lance@fragmentedthought.com> (https://fragmentedthought.com)"
@@ -33,7 +35,9 @@
     "@typescript-eslint/parser": "^4.30.0",
     "dotenv": "^10.0.0",
     "eslint": "^7.32.0",
+    "husky": "^7.0.2",
     "jest": "^27.1.0",
+    "lint-staged": "^11.1.2",
     "nodemon": "^2.0.12",
     "prettier": "^2.3.2",
     "prettier-eslint": "^13.0.0",
@@ -54,5 +58,10 @@
     "graphql-upload": "^12.0.0",
     "tslib": "^2.3.1",
     "uuid": "^8.3.2"
+  },
+  "lint-staged": {
+    "src/**/*.{js,ts,json,md,graphql}": [
+      "prettier --write"
+    ]
   }
 }
