@@ -3,5 +3,5 @@ module.exports = {
   roots: ["./src/"],
   testEnvironment: "node",
   globalSetup: "./tests/jest/jest.setup.ts",
-  // setupFilesAfterEnv: ["./tests/jest/jest.setupAfterEnv.ts"],
+  setupFiles: ["<rootDir>/tests/jest/environment.ts"],
 };
