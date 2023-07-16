@@ -1,0 +1,76 @@
+enum AuthenticationRole {
+  Authenticated
+  Anonymous
+}
+
+directive @auth(
+  requires: AuthenticationRole = Authenticated
+) on OBJECT | FIELD_DEFINITION
+
+extend type Query {
+  """
+  A base definition authentication actors
+  """
+  self: AuthenticationIdentity
+}
+
+"""
+A base definition authentication actors. Customized from the auth-api generated types.
+"""
+type AuthenticationIdentity implements ICreated & IDisplayImage & IDisplayName & IId & IUpdated {
+  """
+  True if the Identity is active. False if the User has been deactivated.
+  Deactivated Users will not be able to login. Entities will always be active.
+  """
+  active: Boolean!
+
+  """
+  ISO date time string for the time this resource was created
+  """
+  createdAt: String
+
+  """
+  Unique identifier for users that created this resource
+  """
+  createdBy: String
+
+  """
+  A public url name safe to display in any HTML context
+  """
+  displayImageUrl: String
+
+  """
+  A preformatted name safe to display in any HTML context
+  """
+  displayName: String!
+
+  """
+  Email address. Users will have emails, entities will not.
+  """
+  email: String
+
+  """
+  The primary id for this type. Typically a namespaced chain of methods, providers, and unique ids.
+  """
+  id: ID!
+
+  """
+  The string will be in an IANA time zone format. https://www.iana.org/time-zones
+  """
+  timezone: String
+
+  """
+  ISO date time string for the time this resource was created
+  """
+  updatedAt: String
+
+  """
+  Unique identifier for users that created this resource
+  """
+  updatedBy: String
+
+  #  """
+  #  If the account's email has been verified. Entities will always be active.
+  #  """
+  # verified: Boolean!
+}

@@ -1,0 +1,97 @@
+query AuthenticationLoginUrl(
+  $application: AuthenticationApplicationInput!
+  $redirectUrl: String!
+  $pkceChallenge: String!
+  $pkceChallengeMethod: String
+  $scopes: String
+  $state: String
+) {
+  authentication {
+    loginUrl(
+      application: $application
+      redirectUrl: $redirectUrl
+      pkceChallenge: $pkceChallenge
+      pkceChallengeMethod: $pkceChallengeMethod
+      scopes: $scopes
+      state: $state
+    )
+  }
+}
+
+query AuthenticationLogoutUrl($application: AuthenticationApplicationInput!) {
+  authentication {
+    logoutUrl(application: $application)
+  }
+}
+
+query AuthenticationContext($application: AuthenticationApplicationInput!) {
+  authentication {
+    context(application: $application) {
+      credentials {
+        ...AuthenticationCredentialsFields
+      }
+      identity {
+        displayImageUrl
+        displayName
+        id
+        email
+        active
+        timezone
+      }
+    }
+  }
+}
+
+mutation ExchangeOAuthCodeForAccessTokenUsingPKCE(
+  $application: AuthenticationApplicationInput!
+  $code: String!
+  $redirectUrl: String!
+  $pckeVerifier: String!
+) {
+  authentication {
+    exchangeOAuthCodeForAccessTokenUsingPKCE(
+      application: $application
+      code: $code
+      redirectUrl: $redirectUrl
+      pckeVerifier: $pckeVerifier
+    ) {
+      ...AuthenticationCredentialsFields
+    }
+  }
+}
+
+mutation AuthenticationExchangeRefreshTokenForAccessToken(
+  $application: AuthenticationApplicationInput!
+  $refreshToken: String!
+) {
+  authentication {
+    exchangeRefreshTokenForAccessToken(
+      application: $application
+      refreshToken: $refreshToken
+    ) {
+      ...AuthenticationCredentialsFields
+    }
+  }
+}
+
+mutation AuthenticationClientCredentialsGrant(
+  $entityId: String!
+  $entitySecret: String!
+  $scope: String
+) {
+  authentication {
+    clientCredentialsGrant(
+      entityId: $entityId
+      entitySecret: $entitySecret
+      scope: $scope
+    ) {
+      ...AuthenticationCredentialsFields
+    }
+  }
+}
+
+fragment AuthenticationCredentialsFields on AuthenticationCredentials {
+  accessToken
+  refreshToken
+  tokenType
+}

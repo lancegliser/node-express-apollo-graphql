@@ -1,12 +1,12 @@
 import logger from "./logger";
 
-export const onProcessUncaughtException = (err: Error) => {
-  logger.error("onProcessUncaughtException:", { err });
+export const onProcessUncaughtException = (...args: unknown[]) => {
+  logger.error("onProcessUncaughtException:", args);
   process.exit(1);
 };
 
-export const onProcessUnhandledRejection = (reason: Error | any) => {
-  logger.error(`onProcessUnhandledRejection:`, reason);
+export const onProcessUnhandledRejection = (...args: unknown[]) => {
+  logger.error(`onProcessUnhandledRejection:`, args);
   process.exit(1);
 };
 

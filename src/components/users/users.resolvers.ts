@@ -1,7 +1,9 @@
 import {
+  AuthenticationIdentity,
   MutationResolvers,
   QueryResolvers,
   Resolvers,
+  User,
   UsersMutationsResolvers,
   UsersQueryResolvers,
 } from "../../generated/types";
@@ -17,7 +19,6 @@ export const addResolvers = (resolvers: Resolvers): Resolvers => {
 };
 
 const queryResolvers: QueryResolvers = {
-  self: (parent, args, context) => context.user,
   // A small hack that provides pass through enabling name spaces
   users: () => ({}),
 };
@@ -33,7 +34,9 @@ const usersQuery: UsersQueryResolvers = {
     // return context.userRepo.getById(id);
 
     // In this example, we have no DB, so we'll fake that bit
-    return context.user.id === id ? context.user : null;
+    return context.authentication?.identity?.id === id
+      ? getUserFromIdentity(context.authentication.identity)
+      : null;
   },
 };
 
@@ -46,6 +49,21 @@ const usersMutations: UsersMutationsResolvers = {
     // return context.userRepo.save({...user, ...updates});
 
     // In this example, we have no DB, so we'll fake that bit.
-    return { ...context.user, ...updates };
+    const identity = context.authentication?.identity;
+    if (!identity) {
+      throw new Error("identity is undefined");
+    }
+    return { ...getUserFromIdentity(identity), ...updates };
   },
 };
+
+const getUserFromIdentity = (identity: AuthenticationIdentity): User => ({
+  createdAt: identity.createdAt,
+  createdBy: identity.createdBy,
+  displayName: identity.displayName,
+  email: identity.email,
+  id: identity.id,
+  isServiceAccount: false,
+  updatedAt: identity.updatedAt,
+  updatedBy: identity.updatedBy,
+});

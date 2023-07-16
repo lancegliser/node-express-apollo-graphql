@@ -1,11 +1,11 @@
-import { withResolverContext } from "../tests/graphql.utils";
+import { withRequestContext } from "../tests/utilities";
 
 describe("application", () => {
   it("should return resolver context for testing", async () => {
-    await withResolverContext(async (context) => {
-      expect(context.authorization).toBeTruthy();
+    await withRequestContext(async (context) => {
+      expect(context.systemContext).toBeTruthy();
       expect(context.application).toBeTruthy();
-      expect(context.context).toBeTruthy();
+      expect(context.credentials).toBeTruthy();
     });
   });
 });

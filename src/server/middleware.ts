@@ -1,24 +1,66 @@
 import { Application, NextFunction, Request, Response } from "express";
-import cors from "cors";
+import cors, { CorsOptions } from "cors";
 // @ts-expect-error It doesn't publish its types
 import expressHealthCheck from "express-healthcheck";
 import parser from "body-parser";
-import { v4 } from "uuid";
 import expressWinston from "express-winston";
-import { ApolloServer, ApolloServerExpressConfig } from "apollo-server-express";
-import {
-  ApolloServerPluginLandingPageGraphQLPlayground,
-  ApolloServerPluginLandingPageDisabled,
-} from "apollo-server-core";
 import logger from "./logger";
-import { GRAPHQL_URI, HEALTH_CHECK_URL, IS_PRODUCTION } from "../constants";
-import { graphqlUploadExpress } from "graphql-upload";
-import { handleSerializationErrors, LoggingPlugin } from "./graphql";
+import {
+  graphqlUri,
+  healthCheckUri,
+  isLoadingPageEnabled,
+  isProduction,
+  isTest,
+} from "../constants";
+import { LoggingPlugin } from "./graphql";
+import { json } from "body-parser";
+import { ApolloServer, ApolloServerOptions, BaseContext } from "@apollo/server";
+import { WithRequired } from "@apollo/utils.withrequired";
+import {
+  expressMiddleware,
+  ExpressMiddlewareOptions,
+} from "@apollo/server/express4";
+import {
+  ApolloServerPluginLandingPageLocalDefault,
+  ApolloServerPluginLandingPageProductionDefault,
+} from "@apollo/server/plugin/landingPage/default";
 
 export const useCors = (app: Application) => {
   logger.debug("Registered cors(*)");
-  app.use(cors(/*{ credentials: true, origin: true }*/));
+  const corsOptions = getCorsOptions();
+  app.use(cors(corsOptions));
   app.options("*", cors);
+};
+
+const getCorsOptions = (): CorsOptions | undefined => {
+  const allowedOrigins = [
+    // Fill the array with a deduplicated set of values
+    ...new Set([
+      // Split and trim the comma separated allowed origins
+      ...(process.env.CORS_ALLOWED_ORIGINS || "")
+        .split(",")
+        .map((origin) => origin.trim()),
+      // Include the declared UI's base url
+      process.env.UI_BASE_URL,
+    ]),
+  ].filter(Boolean);
+
+  return {
+    origin: allowedOrigins.join(","),
+    credentials: true,
+  };
+};
+
+export const useOptionsMethodInterceptor = (app: Application) => {
+  app.use((req, res, next) => {
+    // Intercepts OPTIONS method so it never reaches the rest of the API
+    if ("OPTIONS" === req.method) {
+      res.send(204);
+      return;
+    }
+
+    next();
+  });
 };
 
 export const use404Handler = (app: Application) => {
@@ -29,19 +71,9 @@ export const use404Handler = (app: Application) => {
     res.send(
       JSON.stringify({
         error: "404 Not Found",
-      })
+      }),
     );
     res.end();
-  });
-};
-
-export const transactionIdHeader = "Transaction-Id";
-export const useRequestTransactionId = (app: Application) => {
-  app.use((req, res, next) => {
-    res.locals = res.locals || {};
-    const transactionIdHeaderValue = req.header(transactionIdHeader);
-    res.locals.transactionId = transactionIdHeaderValue || v4();
-    next();
   });
 };
 
@@ -53,7 +85,7 @@ const useRequestLoggingOptionsDefaults: IUseRequestLoggingOptions = {
 };
 export const useRequestLogging = (
   app: Application,
-  options: IUseRequestLoggingOptions = useRequestLoggingOptionsDefaults
+  options: IUseRequestLoggingOptions = useRequestLoggingOptionsDefaults,
 ) => {
   logger.debug("Registered request logger");
   app.use(
@@ -68,7 +100,7 @@ export const useRequestLogging = (
           return true;
         }
 
-        if (req.path === HEALTH_CHECK_URL) {
+        if (req.path === healthCheckUri) {
           return true;
         }
 
@@ -78,7 +110,7 @@ export const useRequestLogging = (
 
         return options.ignorePaths.indexOf(req.path) >= 0;
       },
-    })
+    }),
   );
 };
 
@@ -87,7 +119,7 @@ export const useExpressErrorLogging = (app: Application) => {
   app.use(
     expressWinston.errorLogger({
       winstonInstance: logger,
-    })
+    }),
   );
 };
 
@@ -99,8 +131,8 @@ export const useBodyRequestParsing = (app: Application) => {
 };
 
 export const useHealthCheck = (app: Application) => {
-  logger.debug(`Registered health check at ${HEALTH_CHECK_URL}`);
-  app.use(HEALTH_CHECK_URL, expressHealthCheck());
+  logger.debug(`Registered health check at ${healthCheckUri}`);
+  app.use(healthCheckUri, expressHealthCheck());
 };
 
 export const useErrorHandling = (app: Application) => {
@@ -118,37 +150,42 @@ const handleCustomErrors = (app: Application) => {
   app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
     logger.error({ err, req, res });
     const response: IErrorResponse = { error: err.message };
-    if (!IS_PRODUCTION) {
+    if (!isProduction) {
       response.stack = err.stack;
     }
     res.status(500).json(response);
   });
 };
 
-export const useGraphQL = async (
+export const useGraphQL = async <TContext extends BaseContext>(
   app: Application,
-  config: ApolloServerExpressConfig,
-  path: string = GRAPHQL_URI
+  config: ApolloServerOptions<TContext>,
+  path: string = graphqlUri,
+  middlewareOptions: WithRequired<
+    Omit<ExpressMiddlewareOptions<TContext>, "path">,
+    "context"
+  >,
 ) => {
-  const apolloServer = new ApolloServer({
-    debug: !IS_PRODUCTION,
-    plugins: [
-      LoggingPlugin,
-      // Playground
-      // process.env.NODE_ENV === "production"
-      //   ? ApolloServerPluginLandingPageDisabled()
-      //   : ApolloServerPluginLandingPageGraphQLPlayground(),
-      ApolloServerPluginLandingPageGraphQLPlayground(),
-    ],
-    formatError: (error) => handleSerializationErrors(error),
+  const plugins: ApolloServerOptions<TContext>["plugins"] = [
+    isLoadingPageEnabled
+      ? ApolloServerPluginLandingPageLocalDefault()
+      : ApolloServerPluginLandingPageProductionDefault(),
+    ...(config.plugins || []),
+  ];
+  if (!isTest) {
+    plugins.push(LoggingPlugin());
+  }
+
+  const server = new ApolloServer({
+    plugins,
+    csrfPrevention: true,
+    cache: "bounded",
+    introspection: true,
+    logger: logger,
     ...config,
   });
-  await apolloServer.start();
-  apolloServer.applyMiddleware({ app, path });
-  // TODO restore for upload once it works
-  // app.use(
-  //   path,
-  //   graphqlUploadExpress({ maxFileSize: 20000000, maxFiles: 10 }),
-  //   apolloServer.getMiddleware
-  // );
+
+  // app.use(graphqlUploadExpress()); // If you need to upload
+  await server.start();
+  app.use(path, json(), expressMiddleware<TContext>(server, middlewareOptions));
 };

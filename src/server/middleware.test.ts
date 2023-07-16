@@ -1,25 +1,25 @@
 import supertest from "supertest";
-import { HEALTH_CHECK_URL, ROOT_URI } from "../constants";
-import { withResolverContext } from "../../tests/graphql.utils";
+import { healthCheckUri, rootUri } from "../constants";
+import { withRequestContext } from "../../tests/utilities";
 
 describe("middleware", () => {
   it("should provide access-control-allow-origin * header", async () => {
-    await withResolverContext(async ({ application }) => {
-      const res = await supertest(application).get(ROOT_URI);
+    await withRequestContext(async ({ application }) => {
+      const res = await supertest(application).get(rootUri);
       expect(res.header["access-control-allow-origin"]).toBe("*");
     });
   });
 
   it("should respond to health check with uptime", async () => {
-    await withResolverContext(async ({ application }) => {
-      const res = await supertest(application).get(HEALTH_CHECK_URL);
+    await withRequestContext(async ({ application }) => {
+      const res = await supertest(application).get(healthCheckUri);
       expect(res.status).toBe(200);
       expect(res.body.uptime).toBeGreaterThan(0);
     });
   });
 
   // it("should parse body json", async () => {
-  //   await withResolverContext(async ({ application }) => {
+  //   await withRequestContext(async ({ application }) => {
   //     const value = Math.random();
   //     const res = await supertest(application)
   //       .post(ROOT_URI + requestInfoUri)
@@ -34,7 +34,7 @@ describe("middleware", () => {
 
   describe("error handling", () => {
     // it("should include status, message, and stack for client errors", async () => {
-    //   await withResolverContext(async ({ application }) => {
+    //   await withRequestContext(async ({ application }) => {
     //     const res = await supertest(application).get(ROOT_URI + clientErrorUri);
     //     expect(res.status).toBe(406);
     //     expect(res.error).toBeTruthy();
@@ -46,7 +46,7 @@ describe("middleware", () => {
     //   });
     // });
     // it("should include status, message, and stack for server errors", async () => {
-    //   await withResolverContext(async ({ application }) => {
+    //   await withRequestContext(async ({ application }) => {
     //     const res = await supertest(application).get(ROOT_URI + serverErrorUri);
     //     expect(res.status).toBe(502);
     //     expect(res.error).toBeTruthy();
@@ -55,27 +55,6 @@ describe("middleware", () => {
     //     }
     //     expect(res.body.error).toMatch(/Server error/i);
     //     expect(res.body.stack).toBeTruthy();
-    //   });
-    // });
-  });
-
-  describe("transactionId", () => {
-    // it("should generate a new transactionId if required", async () => {
-    //   await withResolverContext(async ({ application }) => {
-    //     const res = await supertest(application)
-    //       .post(ROOT_URI + requestInfoUri)
-    //       .send();
-    //     expect(res.body.transactionId).toBeTruthy();
-    //   });
-    // });
-    // it("should reuse the transactionId if present", async () => {
-    //   await withResolverContext(async ({ application }) => {
-    //     const transactionId = v4();
-    //     const res = await supertest(application)
-    //       .post(ROOT_URI + requestInfoUri)
-    //       .set(transactionIdHeader, transactionId)
-    //       .send();
-    //     expect(res.body.transactionId).toBe(transactionId);
     //   });
     // });
   });

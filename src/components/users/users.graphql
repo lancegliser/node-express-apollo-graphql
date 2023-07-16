@@ -1,6 +1,4 @@
 extend type Query {
-  "Returns the current user as defined by the authentication headers"
-  self: User
   "Provides name spaced users functionality"
   users: UsersQuery!
 }
@@ -28,11 +26,11 @@ type User implements ICreated & IUpdated & IDisplayName {
   "ISO date time string for the time this resource was created"
   createdAt: String
   "Unique identifier for users that created this resource"
-  createdBy: ID
+  createdBy: String
   "ISO date time string for the time this resource was created"
   updatedAt: String
   "Unique identifier for users that created this resource"
-  updatedBy: ID
+  updatedBy: String
   "A preformatted name safe to display in any HTML context"
   displayName: String
   "Email addresses"

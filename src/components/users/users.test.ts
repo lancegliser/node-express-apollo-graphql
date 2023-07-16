@@ -1,36 +1,24 @@
 import { gql } from "apollo-server";
 import { print } from "graphql";
 import {
-  expectGraphQLSuccessResponse,
-  ResolverContext,
-  withResolverContext,
-} from "../../../tests/graphql.utils";
-import supertest from "supertest";
-import { GRAPHQL_URI } from "../../constants";
-import {
   User,
   UsersMutationsSaveUserArgs,
   UsersQueryGetByIdArgs,
 } from "../../generated/types";
+import { expectGraphQLSuccessResponse } from "../../../tests/expectations/graphql";
+import { RequestContext, withRequestContext } from "../../../tests/utilities";
+import { postCredentialedGraphQLRequest } from "../../../tests/graphql.utils";
 
 describe("users", () => {
-  it("should return the current user (self) from request context", async () => {
-    await withSelfContext(async ({ self }) => {
-      expect(self.displayName).toBeTruthy();
-    });
-  });
-
   it("should return a user given an id", async () => {
-    await withSelfContext(async ({ application, authorization, self }) => {
+    await withSelfContext(async ({ self, ...context }) => {
       if (!self.id) {
         throw new Error("self.id is undefined");
       }
 
-      const queryData: {
-        query: string;
-        variables: UsersQueryGetByIdArgs;
-      } = {
-        query: print(gql`
+      const response = await postCredentialedGraphQLRequest(
+        context,
+        print(gql`
           query User($id: ID!) {
             users {
               getById(id: $id) {
@@ -40,13 +28,8 @@ describe("users", () => {
             }
           }
         `),
-        variables: { id: self.id },
-      };
-
-      const response = await supertest(application)
-        .post(GRAPHQL_URI)
-        .set("authorization", authorization)
-        .send(queryData);
+        { id: self.id } satisfies UsersQueryGetByIdArgs,
+      );
       expectGraphQLSuccessResponse(response);
 
       const user: User = response.body.data.users.getById;
@@ -55,18 +38,15 @@ describe("users", () => {
   });
 
   it("should save the user and return the updated user", async () => {
-    await withSelfContext(async ({ application, authorization, self }) => {
+    await withSelfContext(async ({ self, ...context }) => {
       if (!self.id) {
         throw new Error("self.id is undefined");
       }
 
       const newName = new Date().toLocaleString();
-
-      const queryData: {
-        query: string;
-        variables: UsersMutationsSaveUserArgs;
-      } = {
-        query: print(gql`
+      const response = await postCredentialedGraphQLRequest(
+        context,
+        print(gql`
           mutation SaveUser($user: UserInput!) {
             users {
               saveUser(user: $user) {
@@ -76,19 +56,14 @@ describe("users", () => {
             }
           }
         `),
-        variables: {
+        {
           user: {
             displayName: newName,
             // email: undefined, // If not provided, the old value is maintained
             id: self.id,
           },
-        },
-      };
-
-      const response = await supertest(application)
-        .post(GRAPHQL_URI)
-        .set("authorization", authorization)
-        .send(queryData);
+        } satisfies UsersMutationsSaveUserArgs,
+      );
       expectGraphQLSuccessResponse(response);
 
       const user: User = response.body.data.users.saveUser;
@@ -101,16 +76,14 @@ describe("users", () => {
 // A helper context function to ensure all tests have access to self
 let self: User;
 type WithSelfContext = (
-  context: ResolverContext & { self: User }
+  context: RequestContext & { self: User },
 ) => Promise<void>;
 const withSelfContext = async (fn: WithSelfContext) => {
-  await withResolverContext(async (context) => {
+  await withRequestContext(async (context) => {
     if (!self) {
-      const { application, authorization } = context;
-      const queryData: {
-        query: string;
-      } = {
-        query: print(gql`
+      const response = await postCredentialedGraphQLRequest(
+        context,
+        print(gql`
           query Self {
             self {
               id
@@ -118,13 +91,7 @@ const withSelfContext = async (fn: WithSelfContext) => {
             }
           }
         `),
-        // variables: {},
-      };
-
-      const response = await supertest(application)
-        .post(GRAPHQL_URI)
-        .set("authorization", authorization)
-        .send(queryData);
+      );
       expectGraphQLSuccessResponse(response);
 
       // Assign the returned any value to an intermediate variable with a strong type.

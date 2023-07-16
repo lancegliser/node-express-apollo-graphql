@@ -2,7 +2,7 @@ interface ICreated {
   "ISO date time string for the time this resource was created"
   createdAt: String
   "Unique identifier for users that created this resource"
-  createdBy: ID
+  createdBy: String
 }
 
 interface IDisplayName {
@@ -10,9 +10,23 @@ interface IDisplayName {
   displayName: String
 }
 
+interface IDisplayImage {
+  """
+  A public url name safe to display in any HTML context
+  """
+  displayImageUrl: String
+}
+
+interface IId {
+  """
+  The primary id for this type. Typically a namespaced chain of methods, providers, and unique ids.
+  """
+  id: ID!
+}
+
 interface IUpdated {
   "ISO date time string for the time this resource was created"
   updatedAt: String
   "Unique identifier for users that created this resource"
-  updatedBy: ID
+  updatedBy: String
 }

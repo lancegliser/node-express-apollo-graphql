@@ -1,5 +1,5 @@
 import winston, { Logger } from "winston";
-import { Request, Response } from "express";
+import { ExpressContextFunctionArgument } from "@apollo/server/express4";
 
 const logger = winston.createLogger({
   exitOnError: false,
@@ -12,17 +12,7 @@ export default logger;
 export const getECSContextualLogger = (
   logger: Logger,
   context: {
-    req?: Request;
-    res?: Response;
-    // @see https://www.elastic.co/guide/en/ecs/1.7/ecs-base.html
-    labels?: {
-      transactionId?: string;
-    } & Record<string, any>;
-    // @see https://www.elastic.co/guide/en/ecs/current/ecs-user.html
-    user: {
-      id?: string;
-      email?: string;
-      fullName?: string;
-    };
-  }
+    req?: ExpressContextFunctionArgument["req"];
+    res?: ExpressContextFunctionArgument["res"];
+  } & Record<string, unknown>,
 ): Logger => logger.child(context);

@@ -1,0 +1,297 @@
+directive @auth(
+  requires: AuthenticationRole = Authenticated
+) on FIELD_DEFINITION | OBJECT
+
+type Authentication {
+  """
+  Returns the AuthContext specific to the application provided for the Authorization access token
+  """
+  context(application: AuthenticationApplicationInput): AuthenticationContext!
+
+  """
+  Returns a URL standardized for the OAuth provider. The user should be redirected to this URL directly.
+  """
+  loginUrl(
+    application: AuthenticationApplicationInput!
+
+    """
+    A challenge string generated using 'S256' method
+    """
+    pkceChallenge: String!
+
+    """
+    The method used to create the challenge. Default: 'S256'
+    """
+    pkceChallengeMethod: String
+
+    """
+    A URL to which the OAuth system will redirect the user with the code
+    """
+    redirectUrl: String!
+
+    """
+    A list of scopes to be included in the OAuth flow. Default: 'offline_access'
+    """
+    scopes: String
+    state: String
+  ): String!
+
+  """
+  Returns a URL standardized for the OAuth provider. The user should be redirected to this URL after clearing internal data.
+  """
+  logoutUrl(application: AuthenticationApplicationInput!): String!
+}
+
+input AuthenticationApplicationInput {
+  """
+  The client application id registered in the OAuth provider
+  """
+  clientId: String!
+
+  """
+  The client application secret registered in the OAuth provider
+  """
+  clientSecret: String!
+
+  """
+  An alternative id for an Entity representing the resource as a Entity, often used in client credentials grants.
+  """
+  entityId: String
+}
+
+type AuthenticationContext {
+  credentials: AuthenticationCredentials
+
+  """
+  Service account associated data.
+  """
+  entity: AuthenticationContextEntity
+
+  """
+  Generic identity properties. Could be a user or entity. Combined common properties exist, but are empty depending on type.
+  """
+  identity: AuthenticationIdentity
+}
+
+type AuthenticationContextEntity {
+  """
+  Permissions specific to the target entity if defined
+  """
+  permissions: [String!]
+}
+
+type AuthenticationCredentials {
+  accessToken: String!
+
+  """
+  Refresh tokens are typically supplied only for users with offline access grants
+  """
+  refreshToken: String
+
+  """
+  The type of token to be included in request Authorization headers '{Type} {Token}'.
+  """
+  tokenType: TokenType
+}
+
+"""
+A base definition authentication actors
+"""
+type AuthenticationIdentity implements ICreated & IDisplayImage & IDisplayName & IId & IUpdated {
+  """
+  True if the Identity is active. False if the User has been deactivated.
+  Deactivated Users will not be able to login. Entities will always be active.
+  """
+  active: Boolean!
+
+  """
+  ISO date time string for the time this resource was created
+  """
+  createdAt: String
+
+  """
+  Unique identifier for users that created this resource
+  """
+  createdBy: String
+
+  """
+  A public url name safe to display in any HTML context
+  """
+  displayImageUrl: String
+
+  """
+  A preformatted name safe to display in any HTML context
+  """
+  displayName: String!
+
+  """
+  Email address. Users will have emails, entities will not.
+  """
+  email: String
+
+  """
+  The primary id for this type. Typically a namespaced chain of methods, providers, and unique ids.
+  """
+  id: ID!
+
+  """
+  The string will be in an IANA time zone format. https://www.iana.org/time-zones
+  """
+  timezone: String
+
+  """
+  ISO date time string for the time this resource was created
+  """
+  updatedAt: String
+
+  """
+  Unique identifier for users that created this resource
+  """
+  updatedBy: String
+
+  """
+  If the account's email has been verified. Entities will always be active.
+  """
+  verified: Boolean!
+}
+
+type AuthenticationMutations {
+  """
+  Grants credentials for accessing one entity from another.
+  """
+  clientCredentialsGrant(
+    entityId: String!
+    entitySecret: String!
+
+    """
+    This parameter is used to indicate which target entity you are requesting access.
+    To request access to an entity, use the format target-entity:<target-entity-id>:<roles>.
+    Roles are an optional comma separated list.
+    """
+    scope: String
+  ): AuthenticationCredentials!
+
+  """
+  Exchanges an OAuth code for access credentials. Refresh tokens may be issued based on provider configuration.
+  """
+  exchangeOAuthCodeForAccessTokenUsingPKCE(
+    application: AuthenticationApplicationInput!
+
+    """
+    The authorization code returned on the /oauth2/authorize response.
+    """
+    code: String!
+
+    """
+    The verifier stored in session by the consumer to be paired with the challenge sent along to the OAuth provider
+    with the user. Be sure to clear it from session to avoid its reuse.
+    """
+    pckeVerifier: String!
+
+    """
+    The URL to redirect to upon a successful request.
+    """
+    redirectUrl: String!
+  ): AuthenticationCredentials!
+
+  """
+  Exchanges a refresh token for a new set of credentials. Refresh tokens may be updated or reused based on provider configuration.
+  """
+  exchangeRefreshTokenForAccessToken(
+    application: AuthenticationApplicationInput!
+    refreshToken: String!
+  ): AuthenticationCredentials!
+}
+
+enum AuthenticationRole {
+  Anonymous
+  Authenticated
+}
+
+interface ICreated {
+  """
+  ISO date time string for the time this resource was created
+  """
+  createdAt: String
+
+  """
+  Unique identifier for users that created this resource
+  """
+  createdBy: String
+}
+
+interface IDisplayImage {
+  """
+  A public url name safe to display in any HTML context
+  """
+  displayImageUrl: String
+}
+
+interface IDisplayName {
+  """
+  A preformatted display name safe to display in HTML context
+  """
+  displayName: String
+}
+
+interface IId {
+  """
+  The primary id for this type. Typically a UUID.
+  """
+  id: ID
+}
+
+interface IUpdated {
+  """
+  ISO date time string for the time this resource was created
+  """
+  updatedAt: String
+
+  """
+  Unique identifier for users that created this resource
+  """
+  updatedBy: String
+}
+
+scalar JSON
+
+type Mutation {
+  authentication: AuthenticationMutations!
+}
+
+type Query {
+  authentication: Authentication!
+  self: AuthenticationIdentity
+  system: System!
+}
+
+type System {
+  """
+  Returns configurations applicable to the application for the current environment
+  """
+  config: SystemConfig!
+
+  """
+  Provides a list of environmental variables
+  """
+  environment: JSON!
+}
+
+"""
+Provides environment user agnostic system configurations
+"""
+type SystemConfig {
+  """
+  The current time. A mock field likely to be replaced in application specific implementations.
+  """
+  timestamp: String!
+}
+
+"""
+Bearer Token type as defined by https://tools.ietf.org/html/rfc6750.
+MAC Token type as referenced by https://tools.ietf.org/html/rfc6749.
+"""
+enum TokenType {
+  Bearer
+  MAC
+}
