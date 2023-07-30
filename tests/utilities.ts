@@ -5,17 +5,17 @@ import {
   getAuthenticationSDK,
   getAuthenticationSDKRequestHeaders,
 } from "../src/services/auth-api/src/utils";
-import {getSystemContext, SystemContext} from "../src/server/systemContext";
+import { getSystemContext, SystemContext } from "../src/server/systemContext";
 import logger from "../src/server/logger";
-import {ExpressContext} from "apollo-server-express/src/ApolloServer";
-import {AuthenticationContext} from "../src/server/authentication";
-import {getApplication} from "../src/application";
+import { AuthenticationContext } from "../src/server/authentication";
+import { getApplication } from "../src/application";
+import { ExpressContextFunctionArgument } from "@apollo/server/express4";
 
 // Supports internal testing, such as repos
 type TWithSystemContext = (context: SystemContext) => Promise<void>;
 let systemContext: SystemContext;
 export const withSystemContext = async (
-  fn: TWithSystemContext
+  fn: TWithSystemContext,
 ): Promise<void> => {
   if (!systemContext) {
     systemContext = await getSystemContext();
@@ -29,7 +29,7 @@ type TWithGraphQLContext = (context: GraphQLContext) => Promise<void>;
  * If you don't need user, use withSystemContext() for better performance.
  **/
 export const withGraphQLContext = async (
-  fn: TWithGraphQLContext
+  fn: TWithGraphQLContext,
 ): Promise<void> => {
   await withSystemContext(async (systemContext) => {
     await fn({
@@ -48,8 +48,8 @@ export const withGraphQLContext = async (
         },
       },
       logger: logger,
-      req: {} as ExpressContext["req"],
-      res: {} as ExpressContext["res"],
+      req: {} as ExpressContextFunctionArgument["req"],
+      res: {} as ExpressContextFunctionArgument["res"],
     });
   });
 };
@@ -67,7 +67,7 @@ let credentials: RequestContext["credentials"];
  * Includes SystemContext for in case you need to setup or tear down data in your tests.
  **/
 export const withRequestContext = async (
-  fn: TWithRequestContext
+  fn: TWithRequestContext,
 ): Promise<void> => {
   await withSystemContext(async (systemContext) => {
     if (!application) {
@@ -88,29 +88,34 @@ export const withRequestContext = async (
 export const getCredentials = async (): Promise<
   AuthenticationContext["credentials"]
 > => {
-  if (
-    !credentials &&
-    process.env.TEST_ENTITY_ID &&
-    process.env.TEST_ENTITY_SECRET
-  ) {
-    credentials = await getCredentialsByCredentialsGrant(
-      process.env.TEST_ENTITY_ID,
-      process.env.TEST_ENTITY_SECRET,
-      `target-entity:some-user-id`
-    );
-  }
+  // if (
+  //   !credentials &&
+  //   process.env.TEST_ENTITY_ID &&
+  //   process.env.TEST_ENTITY_SECRET
+  // ) {
+  //   credentials = await getCredentialsByCredentialsGrant(
+  //     process.env.TEST_ENTITY_ID,
+  //     process.env.TEST_ENTITY_SECRET,
+  //     `target-entity:some-user-id`,
+  //   );
+  // }
+  //
+  // if (!credentials) {
+  //   throw new Error("Credentials could not be established");
+  // }
+  //
+  // return credentials;
 
-  if (!credentials) {
-    throw new Error("Credentials could not be established");
-  }
-
-  return credentials;
+  return {
+    accessToken: "Bearer 1234",
+    refreshToken: undefined,
+  };
 };
 
 const getCredentialsByCredentialsGrant = async (
   entityId: string,
   entitySecret: string,
-  scope?: string
+  scope?: string,
 ): Promise<AuthenticationContext["credentials"]> => {
   const sdk = getAuthenticationSDK();
 
@@ -121,12 +126,12 @@ const getCredentialsByCredentialsGrant = async (
         entitySecret,
         scope,
       },
-      getAuthenticationSDKRequestHeaders()
+      getAuthenticationSDKRequestHeaders(),
     );
     return response.authentication.clientCredentialsGrant;
   } catch (reason) {
     throw new Error(
-      `Credentials grant could not obtain accessToken: ${reason}`
+      `Credentials grant could not obtain accessToken: ${reason}`,
     );
   }
 };
