@@ -24,9 +24,25 @@ interface IId {
   id: ID!
 }
 
+# See https://www.apollographql.com/docs/react/pagination/offset-based/#the-offsetlimitpagination-helper
+"Provides the required attributes to support automatic .fetchMore() offset pagination merge strategies"
+interface IOffsetPaging {
+  "The number of records in this set"
+  limit: Int!
+  "The index of the first item in this result set from the larger collection"
+  offset: Int!
+  "The total number of records available in the larger collection"
+  total: Int!
+}
+
 interface IUpdated {
   "ISO date time string for the time this resource was created"
   updatedAt: String
   "Unique identifier for users that created this resource"
   updatedBy: String
+}
+
+enum SortDirection {
+  Ascending
+  Descending
 }
