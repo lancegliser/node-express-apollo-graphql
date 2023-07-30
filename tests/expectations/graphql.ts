@@ -53,11 +53,12 @@ export const expectGraphQLSuccessResponse = (response: Response): void => {
     throw new Error(response.body.error);
   }
 
-  const firstError = response.body.errors!.at(0);
+  const firstError = response.body.errors?.at(0);
   if (firstError) {
     const message = [
       ...(firstError.path || []),
-      firstError.extensions?.exception?.stacktrace?.join("\r\n") ?? firstError.message,
+      firstError.extensions?.exception?.stacktrace?.join("\r\n") ??
+        firstError.message,
     ]
       .filter(Boolean)
       .join(" - ");
