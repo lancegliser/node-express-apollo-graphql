@@ -97,6 +97,16 @@ export type IId = {
   id: Scalars["ID"]["output"];
 };
 
+/** Provides the required attributes to support automatic .fetchMore() offset pagination merge strategies */
+export type IOffsetPaging = {
+  /** The number of records in this set */
+  limit: Scalars["Int"]["output"];
+  /** The index of the first item in this result set from the larger collection */
+  offset: Scalars["Int"]["output"];
+  /** The total number of records available in the larger collection */
+  total: Scalars["Int"]["output"];
+};
+
 export type IUpdated = {
   /** ISO date time string for the time this resource was created */
   updatedAt?: Maybe<Scalars["String"]["output"]>;
@@ -118,6 +128,11 @@ export type Query = {
   /** Provides name spaced users functionality */
   users: UsersQuery;
 };
+
+export enum SortDirection {
+  Ascending = "Ascending",
+  Descending = "Descending",
+}
 
 export type System = {
   __typename?: "System";
@@ -149,7 +164,7 @@ export type User = ICreated &
     /** Email addresses */
     email?: Maybe<Scalars["String"]["output"]>;
     /** Unique identifier for the resource across all collections */
-    id?: Maybe<Scalars["ID"]["output"]>;
+    id: Scalars["ID"]["output"];
     /** Determines if a users is a service account supporting applications */
     isServiceAccount?: Maybe<Scalars["Boolean"]["output"]>;
     /** ISO date time string for the time this resource was created */
@@ -184,11 +199,43 @@ export type UsersQuery = {
   __typename?: "UsersQuery";
   /** Returns the user record matching the provided id */
   getById?: Maybe<User>;
+  search: UsersSearchPagedResponse;
 };
 
 /** Provides name spaced users functionality */
 export type UsersQueryGetByIdArgs = {
   id: Scalars["ID"]["input"];
+};
+
+/** Provides name spaced users functionality */
+export type UsersQuerySearchArgs = {
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order?: InputMaybe<UsersSearchOrdering>;
+};
+
+export enum UsersSearchOrderMethod {
+  CreatedAt = "CreatedAt",
+  DisplayName = "DisplayName",
+  Id = "Id",
+}
+
+export type UsersSearchOrdering = {
+  /** Default: Asc */
+  direction?: InputMaybe<SortDirection>;
+  /** One or more fields to be used in sort direction */
+  method?: InputMaybe<UsersSearchOrderMethod>;
+};
+
+export type UsersSearchPagedResponse = IOffsetPaging & {
+  __typename?: "UsersSearchPagedResponse";
+  items: Array<User>;
+  /** The number of records in this set. Default: 50. */
+  limit: Scalars["Int"]["output"];
+  /** The index of the first item in this result set from the larger collection. Default: 0. */
+  offset: Scalars["Int"]["output"];
+  /** The total number of records available in the larger collection */
+  total: Scalars["Int"]["output"];
 };
 
 export type ResolverTypeWrapper<T> = Promise<T> | T;
@@ -302,6 +349,7 @@ export type ResolversInterfaceTypes<RefType extends Record<string, unknown>> = {
   IDisplayImage: AuthenticationIdentity;
   IDisplayName: AuthenticationIdentity | User;
   IId: AuthenticationIdentity;
+  IOffsetPaging: UsersSearchPagedResponse;
   IUpdated: AuthenticationIdentity | User;
 };
 
@@ -321,12 +369,17 @@ export type ResolversTypes = {
     ResolversInterfaceTypes<ResolversTypes>["IDisplayName"]
   >;
   IId: ResolverTypeWrapper<ResolversInterfaceTypes<ResolversTypes>["IId"]>;
+  IOffsetPaging: ResolverTypeWrapper<
+    ResolversInterfaceTypes<ResolversTypes>["IOffsetPaging"]
+  >;
   IUpdated: ResolverTypeWrapper<
     ResolversInterfaceTypes<ResolversTypes>["IUpdated"]
   >;
+  Int: ResolverTypeWrapper<Scalars["Int"]["output"]>;
   JSON: ResolverTypeWrapper<Scalars["JSON"]["output"]>;
   Mutation: ResolverTypeWrapper<{}>;
   Query: ResolverTypeWrapper<{}>;
+  SortDirection: SortDirection;
   String: ResolverTypeWrapper<Scalars["String"]["output"]>;
   System: ResolverTypeWrapper<System>;
   SystemConfig: ResolverTypeWrapper<SystemConfig>;
@@ -335,6 +388,9 @@ export type ResolversTypes = {
   UserInput: UserInput;
   UsersMutations: ResolverTypeWrapper<UsersMutations>;
   UsersQuery: ResolverTypeWrapper<UsersQuery>;
+  UsersSearchOrderMethod: UsersSearchOrderMethod;
+  UsersSearchOrdering: UsersSearchOrdering;
+  UsersSearchPagedResponse: ResolverTypeWrapper<UsersSearchPagedResponse>;
 };
 
 /** Mapping between all available schema types and the resolvers parents */
@@ -346,7 +402,9 @@ export type ResolversParentTypes = {
   IDisplayImage: ResolversInterfaceTypes<ResolversParentTypes>["IDisplayImage"];
   IDisplayName: ResolversInterfaceTypes<ResolversParentTypes>["IDisplayName"];
   IId: ResolversInterfaceTypes<ResolversParentTypes>["IId"];
+  IOffsetPaging: ResolversInterfaceTypes<ResolversParentTypes>["IOffsetPaging"];
   IUpdated: ResolversInterfaceTypes<ResolversParentTypes>["IUpdated"];
+  Int: Scalars["Int"]["output"];
   JSON: Scalars["JSON"]["output"];
   Mutation: {};
   Query: {};
@@ -358,6 +416,8 @@ export type ResolversParentTypes = {
   UserInput: UserInput;
   UsersMutations: UsersMutations;
   UsersQuery: UsersQuery;
+  UsersSearchOrdering: UsersSearchOrdering;
+  UsersSearchPagedResponse: UsersSearchPagedResponse;
 };
 
 export type AuthDirectiveArgs = {
@@ -477,6 +537,21 @@ export type IIdResolvers<
   id?: Resolver<ResolversTypes["ID"], ParentType, ContextType>;
 };
 
+export type IOffsetPagingResolvers<
+  ContextType = GraphQLContext,
+  ParentType extends
+    ResolversParentTypes["IOffsetPaging"] = ResolversParentTypes["IOffsetPaging"],
+> = {
+  __resolveType: TypeResolveFn<
+    "UsersSearchPagedResponse",
+    ParentType,
+    ContextType
+  >;
+  limit?: Resolver<ResolversTypes["Int"], ParentType, ContextType>;
+  offset?: Resolver<ResolversTypes["Int"], ParentType, ContextType>;
+  total?: Resolver<ResolversTypes["Int"], ParentType, ContextType>;
+};
+
 export type IUpdatedResolvers<
   ContextType = GraphQLContext,
   ParentType extends
@@ -573,7 +648,7 @@ export type UserResolvers<
     ContextType
   >;
   email?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
-  id?: Resolver<Maybe<ResolversTypes["ID"]>, ParentType, ContextType>;
+  id?: Resolver<ResolversTypes["ID"], ParentType, ContextType>;
   isServiceAccount?: Resolver<
     Maybe<ResolversTypes["Boolean"]>,
     ParentType,
@@ -617,6 +692,24 @@ export type UsersQueryResolvers<
     ContextType,
     RequireFields<UsersQueryGetByIdArgs, "id">
   >;
+  search?: Resolver<
+    ResolversTypes["UsersSearchPagedResponse"],
+    ParentType,
+    ContextType,
+    Partial<UsersQuerySearchArgs>
+  >;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type UsersSearchPagedResponseResolvers<
+  ContextType = GraphQLContext,
+  ParentType extends
+    ResolversParentTypes["UsersSearchPagedResponse"] = ResolversParentTypes["UsersSearchPagedResponse"],
+> = {
+  items?: Resolver<Array<ResolversTypes["User"]>, ParentType, ContextType>;
+  limit?: Resolver<ResolversTypes["Int"], ParentType, ContextType>;
+  offset?: Resolver<ResolversTypes["Int"], ParentType, ContextType>;
+  total?: Resolver<ResolversTypes["Int"], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -626,6 +719,7 @@ export type Resolvers<ContextType = GraphQLContext> = {
   IDisplayImage?: IDisplayImageResolvers<ContextType>;
   IDisplayName?: IDisplayNameResolvers<ContextType>;
   IId?: IIdResolvers<ContextType>;
+  IOffsetPaging?: IOffsetPagingResolvers<ContextType>;
   IUpdated?: IUpdatedResolvers<ContextType>;
   JSON?: GraphQLScalarType;
   Mutation?: MutationResolvers<ContextType>;
@@ -636,6 +730,7 @@ export type Resolvers<ContextType = GraphQLContext> = {
   User?: UserResolvers<ContextType>;
   UsersMutations?: UsersMutationsResolvers<ContextType>;
   UsersQuery?: UsersQueryResolvers<ContextType>;
+  UsersSearchPagedResponse?: UsersSearchPagedResponseResolvers<ContextType>;
 };
 
 export type DirectiveResolvers<ContextType = GraphQLContext> = {
