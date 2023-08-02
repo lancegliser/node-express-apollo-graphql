@@ -41,12 +41,12 @@ const getCorsOptions = (): CorsOptions | undefined => {
         .split(",")
         .map((origin) => origin.trim()),
       // Include the declared UI's base url
-      process.env.UI_BASE_URL,
+      process.env.UI_BASE_URL || "",
     ]),
   ].filter(Boolean);
 
   return {
-    origin: allowedOrigins.join(","),
+    origin: allowedOrigins,
     credentials: true,
   };
 };
