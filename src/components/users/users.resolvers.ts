@@ -9,6 +9,7 @@ import {
 import { usersSample } from "./users.mock";
 import { GraphQLError } from "graphql";
 import { getUserById } from "./users.utils";
+import { delay } from "../../utilities/timers";
 
 export const addResolvers = (resolvers: Resolvers): Resolvers => {
   // Expand on the existing resolvers to ensure we don't break any
@@ -55,6 +56,10 @@ const usersResolvers: UsersQueryResolvers = {
           }
         });
     const filteredUsers = sortedUsers.slice(offset, limit + offset);
+
+    // Fake some delay to allow animations to show
+    await delay(Math.max(200, Math.random() * 500));
+
     return {
       items: filteredUsers,
       limit: limit,
@@ -82,7 +87,10 @@ const usersMutations: UsersMutationsResolvers = {
     if (!user) {
       throw new GraphQLError(`User ${id} not found`);
     }
+
     // Normally you'd need to save it to a database, but we're mocking here.
+    // Fake some delay to allow animations to show
+    await delay(Math.max(200, Math.random() * 500));
     return { ...user, ...updates };
   },
 };
