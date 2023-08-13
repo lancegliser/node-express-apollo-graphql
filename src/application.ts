@@ -1,9 +1,6 @@
-import express from "express";
-// import { useGraphQL } from "@torch-ai-internal/express-graphql";
-import { ExpressContext } from "apollo-server-express/dist/ApolloServer";
-// import { getSchemaWithResolvers } from "./components";
-import { GraphQLContext } from "./components/context";
-import { GRAPHQL_URI } from "./constants";
+import express, { Express } from "express";
+import { getGraphQLContextAdditions } from "./components/context";
+import { graphqlUri } from "./constants";
 import { GraphQLSchema } from "graphql";
 import logger from "./server/logger";
 import {
@@ -14,39 +11,48 @@ import {
   useExpressErrorLogging,
   useGraphQL,
   useHealthCheck,
+  useOptionsMethodInterceptor,
   useRequestLogging,
-  useRequestTransactionId,
 } from "./server/middleware";
-import { getSchemaWithResolvers } from "./components";
+import { addRoutes, getResolvers } from "./components";
+import { loadFilesSync } from "@graphql-tools/load-files";
+import { mergeTypeDefs } from "@graphql-tools/merge";
+import { useSystemContext } from "./server/systemContext";
+import { useAuthentication } from "./server/authentication";
 
-interface IApplicationSettings {
-  getGraphQLContextAdditions: (
-    context: ExpressContext
-  ) => Promise<Omit<GraphQLContext, "_extensionStack">>;
-}
-export const getApplication = async (
-  settings: IApplicationSettings
-): Promise<express.Application> => {
+// Node can use file watchers.
+// If a new graphql file is created, be sure to update the index imports.
+const typeDefsArray = loadFilesSync(["src/components/**/*.graphql"]);
+const typeDefs = mergeTypeDefs(typeDefsArray);
+
+export const getApplication = async (): Promise<express.Application> => {
   logger.debug("Configuring application");
   const app = express();
   // const systemContext = await getSystemContext();
-  const schema: GraphQLSchema = await getSchemaWithResolvers();
+  const schema: GraphQLSchema = await getResolvers(typeDefs);
 
   useExpressErrorLogging(app);
-  useRequestTransactionId(app);
   // await applySchemas(arangoDb);
-  useRequestLogging(app, {
-    ignorePaths: [GRAPHQL_URI],
-  });
   useCors(app);
+  useOptionsMethodInterceptor(app);
   useHealthCheck(app);
+  useSystemContext(app);
+  useAuthentication(app);
+  useRequestLogging(app, { ignorePaths: [graphqlUri] });
   useBodyRequestParsing(app);
   // await applyMessageQueue(systemContext);
-  await applyGraphQL(app, settings, schema);
+  useRoutes(app);
+  // GraphQL will catch all non-declared routes
+  await applyGraphQL(app, schema);
   useErrorHandling(app);
   use404Handler(app);
 
   return app;
+};
+
+const useRoutes = (app: Express): void => {
+  // Standard routes which must be applied first to take priority over GraphQL's root behaviors
+  addRoutes(app);
 };
 
 // A hook to apply database schemas based on your implementation of a schema manager
@@ -66,20 +72,17 @@ export const getApplication = async (
 
 const applyGraphQL = async (
   app: express.Application,
-  settings: IApplicationSettings,
-  schema: GraphQLSchema
+  schema: GraphQLSchema,
 ) => {
-  const context = settings.getGraphQLContextAdditions;
   await useGraphQL(
     app,
     {
       schema,
-      context,
-      logger,
-      introspection: true,
-      debug: true,
     },
-    GRAPHQL_URI
+    graphqlUri,
+    {
+      context: getGraphQLContextAdditions,
+    },
   );
 };
 

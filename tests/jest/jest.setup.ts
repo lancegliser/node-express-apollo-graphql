@@ -1,10 +1,9 @@
-import dotenv from "dotenv";
-
 module.exports = async () => {
-  const result = dotenv.config();
-  if (result.error) {
-    throw result;
-  }
-
+  process.env.LOG_LEVEL = "warn";
   process.env.NODE_ENV = "test";
+  // await loadMockData();
+};
+
+export const loadMockData = async () => {
+  // load data if you need it
 };

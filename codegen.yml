@@ -1,5 +1,6 @@
 overwrite: true
 generates:
+  # Generate TS additions based on this API's .graphql documents
   "src/generated/types.ts":
     schema: "src/components/**/*.graphql"
     config:
@@ -7,3 +8,20 @@ generates:
     plugins:
       - "typescript"
       - "typescript-resolvers"
+
+    # Example microservice integration: https://auth-api.example.local/
+#  "src/services/auth-api/generated/types.graphql":
+#    schema:
+#      "https://auth-api.example.local/": &schemaOptions
+#        headers:
+#          User-Agent: graphql-codegen
+#    plugins: &schemaPlugins
+#      - "schema-ast"
+#  "src/services/auth-api/generated/types.ts":
+#    schema:
+#      "https://auth-api.example.local/": *schemaOptions
+#    documents: "src/services/auth-api/src/**/!(*.d).{graphql,ts}"
+#    plugins: &externalApiTypescriptPlugins
+#      - "typescript"
+#      - "typescript-operations"
+#      - "typescript-graphql-request"

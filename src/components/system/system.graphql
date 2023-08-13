@@ -1,0 +1,18 @@
+extend type Query {
+  system: System!
+}
+
+type System {
+  "Returns configurations applicable to the application for the current environment"
+  config: SystemConfig!
+  "Provides a list of environmental variables"
+  environment: JSON! @auth
+}
+
+"Provides environment user agnostic system configurations"
+type SystemConfig {
+  "The current time. A mock field likely to be replaced in application specific implementations."
+  timestamp: String!
+  loginUrl: String!
+  logoutUrl: String!
+}

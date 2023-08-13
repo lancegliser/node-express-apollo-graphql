@@ -1,30 +1,38 @@
-import { GraphQLFileLoader } from "@graphql-tools/graphql-file-loader";
-import { loadSchema } from "@graphql-tools/load";
 import GraphQLJSON from "graphql-type-json";
-import { IResolvers } from "@graphql-tools/utils/Interfaces";
-import { GraphQLSchema } from "graphql";
-import { addResolversToSchema } from "@graphql-tools/schema";
-import { GraphQLUpload } from "graphql-upload";
+import { DocumentNode, GraphQLSchema } from "graphql";
+import { makeExecutableSchema } from "@graphql-tools/schema";
 import { addResolvers as addUserResolvers } from "./users/users.resolvers";
+import { graphQLAuthDirective } from "./auth/auth.utils";
+import { IResolvers } from "@graphql-tools/utils";
+import { addAuthRoutes } from "./auth/auth.routes";
+import { Express } from "express";
+import { addSystemResolvers } from "./system/system.resolvers";
+import { addAuthResolvers } from "./auth/auth.resolvers";
 
-export const getSchemaWithResolvers = async (): Promise<GraphQLSchema> => {
-  // Create the schema based on any found .graphql files
-  const schema = await loadSchema("./src/**/*.graphql", {
-    // load from multiple files using glob
-    loaders: [new GraphQLFileLoader()],
-  });
+const { authDirectiveTransformer } = graphQLAuthDirective("auth");
+
+export const getResolvers = async (
+  typeDefs: DocumentNode,
+): Promise<GraphQLSchema> => {
   // Stub the resolvers, including any special scalar types required by plugins
   const resolvers: IResolvers = {
     Query: {},
     Mutation: {},
     JSON: GraphQLJSON,
-    Upload: GraphQLUpload!,
   };
 
   // Add any component resolvers you require
+  addSystemResolvers(resolvers);
+  addAuthResolvers(resolvers);
   addUserResolvers(resolvers);
-  return addResolversToSchema({
-    schema,
+  const schema = makeExecutableSchema({
+    typeDefs,
     resolvers,
   });
+
+  return authDirectiveTransformer(schema);
+};
+
+export const addRoutes = (app: Express): void => {
+  addAuthRoutes(app);
 };

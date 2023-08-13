@@ -1,12 +1,18 @@
 extend type Query {
-  "Returns the current user as defined by the authentication headers"
-  self: User
   "Provides name spaced users functionality"
   users: UsersQuery!
 }
 
 "Provides name spaced users functionality"
 type UsersQuery {
+  search(
+    "Provides a method for declaring custom sort ordering. Default: CreatedAt, Id Descending"
+    order: UsersSearchOrdering
+    "The number of records to include the returned set."
+    limit: Int
+    "The index of the first item in this result set from the larger collection"
+    offset: Int
+  ): UsersSearchPagedResponse!
   "Returns the user record matching the provided id"
   getById(id: ID!): User
 }
@@ -22,17 +28,40 @@ type UsersMutations {
   saveUser(user: UserInput!): User
 }
 
+input UsersSearchOrdering {
+  "One or more fields to be used in sort direction"
+  method: UsersSearchOrderMethod
+  "Default: Asc"
+  direction: SortDirection
+}
+
+enum UsersSearchOrderMethod {
+  Id
+  DisplayName
+  CreatedAt
+}
+
+type UsersSearchPagedResponse implements IOffsetPaging {
+  "The number of records in this set. Default: 50."
+  limit: Int!
+  "The index of the first item in this result set from the larger collection. Default: 0."
+  offset: Int!
+  "The total number of records available in the larger collection"
+  total: Int!
+  items: [User!]!
+}
+
 type User implements ICreated & IUpdated & IDisplayName {
   "Unique identifier for the resource across all collections"
-  id: ID
+  id: ID!
   "ISO date time string for the time this resource was created"
   createdAt: String
   "Unique identifier for users that created this resource"
-  createdBy: ID
+  createdBy: String
   "ISO date time string for the time this resource was created"
   updatedAt: String
   "Unique identifier for users that created this resource"
-  updatedBy: ID
+  updatedBy: String
   "A preformatted name safe to display in any HTML context"
   displayName: String
   "Email addresses"

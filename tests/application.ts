@@ -1,6 +1,5 @@
 import express from "express";
 import { getApplication } from "../src/application";
-import { getGraphQLContextAdditions } from "../src/components/context";
 
 let app: express.Application;
 export const getApp = async (): Promise<express.Application> => {
@@ -8,8 +7,6 @@ export const getApp = async (): Promise<express.Application> => {
     return app;
   }
 
-  app = await getApplication({
-    getGraphQLContextAdditions,
-  });
+  app = await getApplication();
   return app;
 };
