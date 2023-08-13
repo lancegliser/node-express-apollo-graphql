@@ -83,10 +83,7 @@ const userResolvers: UserResolvers = {
 const usersMutations: UsersMutationsResolvers = {
   saveUser: async (parent, { user: updates }) => {
     const { id } = updates;
-    const user = getUserById(id);
-    if (!user) {
-      throw new GraphQLError(`User ${id} not found`);
-    }
+    const user = getUserById(id) || {};
 
     // Normally you'd need to save it to a database, but we're mocking here.
     // Fake some delay to allow animations to show
