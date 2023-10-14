@@ -1,12 +1,6 @@
-# Netflix Apollo Server
+# Apollo server Express GraphQL API example
 
-> Provides a GraphQL interface for shallow content suggestions with details on demand.
-
-## Upstream
-
-```bash
-git remote add upstream git@github.com:lancegliser/node-express-apollo-graphql.git
-```
+> Provides a working API to expand from for initial development
 
 ## GraphQL Playground
 
