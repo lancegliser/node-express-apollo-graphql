@@ -2,6 +2,12 @@
 
 > Provides a working API to expand from for initial development
 
+## Upstream v1.2.0
+
+```bash
+git remote add upstream git@github.com:lancegliser/node-express-apollo-graphql.git
+```
+
 ## GraphQL Playground
 
 Once server is running (`npm run-script dev:watch`)
